@@ -36,6 +36,7 @@ def writer_task(writer_id):
         print(f"Writer {writer_id} is waiting for a review slot.")
 
     # TODO 1: Acquire the review slot before submission
+    review_slots.acquire()
 
     with print_lock:  # console is a shared resource, so we need to lock it
         print(f"Writer {writer_id} has submitted an article for review.")
@@ -43,6 +44,7 @@ def writer_task(writer_id):
     # TODO 2: Safely update the shared variable `articles_submitted` tracking the number of submitted articles
 
     # TODO 3: Release the review slot after submission
+    review_slots.release()
 
 
 def editor_task(editor_id):
@@ -66,8 +68,11 @@ def editor_task(editor_id):
                 print(f"Editor {editor_id} has finished reviewing an article.")
 
             # TODO 7: Safely decrement the number of submitted articles
+            articles_submitted -= 1
 
             # TODO 8: Stop editors if all articles are reviewed
+            if articles_submitted == 0:
+                stop_editors.set()
 
         finally:
             # TODO 9: Ensure the editor lock is released
